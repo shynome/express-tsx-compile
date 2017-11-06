@@ -1,7 +1,6 @@
 {
-  "name": "express-tsx-compile",
-  "version": "1.0.0",
-  "description": "",
+  "name": "express-tsx-compiler",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "typings": "src/index.ts",
   "scripts": {
@@ -11,17 +10,9 @@
     "prebuild": "rm -rf dist",
     "preversion": "npm run test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shynome/express-tsx-compile.git"
-  },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/shynome/express-tsx-compile/issues"
-  },
-  "homepage": "https://github.com/shynome/express-tsx-compile#readme",
+  "license": "MIT",
   "peerDependencies": {
     "typescript": "^2.4.1"
   },
@@ -33,5 +24,17 @@
     "mocha": "^4.0.1",
     "supertest": "^3.0.0",
     "typescript": "^2.6.1"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shynome/express-tsx-compiler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shynome/express-tsx-compiler/issues"
+  },
+  "homepage": "https://github.com/shynome/express-tsx-compiler#readme",
+  "description": ""
 }
