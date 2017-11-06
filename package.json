@@ -1,0 +1,36 @@
+{
+  "name": "express-tsx-compile",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "typings": "src/index.ts",
+  "scripts": {
+    "test": "mocha test",
+    "pretest": "npm run build",
+    "build": "tsc -p src",
+    "prebuild": "rm -rf dist",
+    "preversion": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shynome/express-tsx-compile.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shynome/express-tsx-compile/issues"
+  },
+  "homepage": "https://github.com/shynome/express-tsx-compile#readme",
+  "peerDependencies": {
+    "typescript": "^2.4.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.0.39",
+    "@types/node": "^8.0.47",
+    "express": "^4.16.2",
+    "mocha": "^4.0.1",
+    "supertest": "^3.0.0",
+    "typescript": "^2.6.1"
+  }
+}
