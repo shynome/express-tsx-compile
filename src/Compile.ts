@@ -1,7 +1,7 @@
 import ts = require('typescript')
 import Url = require('url')
 import { RequestHandler } from "express";
-import { sys } from 'typescript'
+import { sys, FileWatcher } from 'typescript'
 import { EventEmitter } from "events";
 export type Import = {
   module:string
@@ -42,7 +42,7 @@ export class Compile {
     let md5:string = this.hash[file]
     if(!md5){
       md5 = this.updateScriptVersion(file)
-      this.development && sys.watchFile(file,this.watch)
+      this.development && this.watchers.push(sys.watchFile(file,this.watch))
     }
     return md5
   }
@@ -77,6 +77,8 @@ export class Compile {
   }
   development = false
   watcher = new EventEmitter()
+  watchers:FileWatcher[] = []
+  unwatch = ()=>this.watchers.map((watcher)=>watcher.close())
   watch = (file)=>{
     let lastScriptVersion = this.getScriptVersion(file)
     let nowScriptVersion = this.updateScriptVersion(file)
@@ -172,7 +174,7 @@ export class Compile {
         body = this.getCompiledCode(file)
         break
       default:
-        res.type('.js')
+        res.type('application/x-typescript')
         body = this.getSourceCode(file)
         break
     }
