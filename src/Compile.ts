@@ -9,7 +9,13 @@ export type Import = {
 }
 export class Compile {
   server:ts.LanguageService
-  compilerOptions:ts.CompilerOptions = {}
+  private __compilerOptions:ts.CompilerOptions = {}
+  get compilerOptions(){ return this.__compilerOptions }
+  set compilerOptions(val){
+    Object.assign(this.__compilerOptions,val)
+    this.compilerOptionsHash = sys.createHash(JSON.stringify(this.compilerOptions))
+  }
+  compilerOptionsHash:string = ''
   static defaultCompilerOptions:ts.CompilerOptions = {
     target: ts.ScriptTarget.ES5,
     module:ts.ModuleKind.AMD,
@@ -32,7 +38,6 @@ export class Compile {
     let resolvedModule = ts.resolveModuleName(module,file,this.compilerOptions,sys).resolvedModule
     return resolvedModule && resolvedModule.resolvedFileName
   }
-  compilerOptionsHash:string = ''
   updateScriptVersion = (file)=>{
     let code = sys.readFile(file)
     return this.hash[file] = sys.createHash(code+this.compilerOptionsHash)
@@ -60,7 +65,6 @@ export class Compile {
       console.warn(err)
     }
     this.compilerOptions = { ...this.compilerOptions, ...Compile.defaultCompilerOptions, ...compilerOptions, }
-    this.compilerOptionsHash = sys.createHash(JSON.stringify(this.compilerOptions))
   }
   constructor(compilerOptions:ts.CompilerOptions={},development=!(/production/i.test(process.env.NODE_ENV))){
     this.init(compilerOptions)
