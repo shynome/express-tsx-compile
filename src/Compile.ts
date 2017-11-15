@@ -12,9 +12,10 @@ export class Compile {
   development = ! /production/i.test(process.env.NODE_ENV)  
   server:ts.LanguageService
   private __compilerOptions:ts.CompilerOptions = {
-    target: ts.ScriptTarget.ES5,
-    module:ts.ModuleKind.AMD,
-    jsx:ts.JsxEmit.React,
+    target: ts.ScriptTarget.ES5, 
+    module:ts.ModuleKind.AMD, 
+    jsx:ts.JsxEmit.React, 
+    moduleResolution:ts.ModuleResolutionKind.NodeJs, 
     sourceMap:this.development
   }
   get compilerOptions(){ return this.__compilerOptions }
