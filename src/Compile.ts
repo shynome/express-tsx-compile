@@ -1,5 +1,6 @@
 import ts = require('typescript')
 import Url = require('url')
+import path = require('path')
 import { RequestHandler } from "express";
 import { sys, FileWatcher } from 'typescript'
 import { EventEmitter } from "events";
@@ -8,21 +9,20 @@ export type Import = {
   filename:string
 }
 export class Compile {
+  development = ! /production/i.test(process.env.NODE_ENV)  
   server:ts.LanguageService
-  private __compilerOptions:ts.CompilerOptions = {}
+  private __compilerOptions:ts.CompilerOptions = {
+    target: ts.ScriptTarget.ES5,
+    module:ts.ModuleKind.AMD,
+    jsx:ts.JsxEmit.React,
+    sourceMap:this.development
+  }
   get compilerOptions(){ return this.__compilerOptions }
   set compilerOptions(val){
     Object.assign(this.__compilerOptions,val)
     this.compilerOptionsHash = sys.createHash(JSON.stringify(this.compilerOptions))
   }
   compilerOptionsHash:string = ''
-  static defaultCompilerOptions:ts.CompilerOptions = {
-    target: ts.ScriptTarget.ES5,
-    module:ts.ModuleKind.AMD,
-    jsx:ts.JsxEmit.React,
-    experimentalDecorators: true,
-    moduleResolution:ts.ModuleResolutionKind.NodeJs,
-  }
   project:string = sys.getCurrentDirectory()
   hash:{[filename:string]:string} = {}
   resolveModuleNames=(moduleNames:string[],containingFile:string)=>{
@@ -51,23 +51,45 @@ export class Compile {
     }
     return md5
   }
-  init = (compilerOptions:ts.CompilerOptions)=>{
-    if(typeof compilerOptions.project==='string'){
-      this.project = compilerOptions.project
-    }
-    try{
-      let { config, error } = ts.readConfigFile(this.project+'/tsconfig.json',ts.sys.readFile)
-      if(error){ throw error }
-      let { options, errors } = ts.convertCompilerOptionsFromJson(config.compilerOptions,this.project)
-      if((errors.length)){ throw errors }
-      this.compilerOptions = options
-    }catch(err){
-      console.warn(err)
-    }
-    this.compilerOptions = { ...this.compilerOptions, ...Compile.defaultCompilerOptions, ...compilerOptions, }
+  static ParseConfigFile = (configfile:string)=>{
+    return ts.parseJsonSourceFileConfigFileContent(
+      ts.parseJsonText(configfile,ts.sys.readFile(configfile)),
+      {
+        useCaseSensitiveFileNames:false,
+        readDirectory:ts.sys.readDirectory,
+        fileExists:ts.sys.fileExists,
+        readFile:ts.sys.readFile
+      },
+      path.dirname(configfile)
+    )
   }
-  constructor(compilerOptions:ts.CompilerOptions={},development=!(/production/i.test(process.env.NODE_ENV))){
-    this.init(compilerOptions)
+  init = (compilerOptionsOrProjectDirname:ts.CompilerOptions|string)=>{
+    let config:any = {}, configfile:string, baseconfig = {}
+    if(typeof compilerOptionsOrProjectDirname==='string'){
+      let project = compilerOptionsOrProjectDirname
+      switch(true){
+        case ts.sys.fileExists(configfile=project):
+        case ts.sys.fileExists(configfile=path.join(project,"./tsconfig.json")):
+          config = Compile.ParseConfigFile(configfile).options
+          break;
+        default:
+          config = {}
+          console.warn(`in project dir can't find tsconfig.json `)
+          break;
+      }
+    }else if(typeof compilerOptionsOrProjectDirname==='object'){
+      config = compilerOptionsOrProjectDirname
+    }else if( ts.sys.fileExists(configfile=path.join(process.cwd(),'./tsconfig.json')) ){
+      baseconfig = Compile.ParseConfigFile(configfile)
+    }
+    this.compilerOptions = {
+      ...baseconfig,
+      ...this.compilerOptions,
+      ...config,
+    }
+  }
+  constructor(compilerOptionsOrProjectDirname?:ts.CompilerOptions|string,development=!(/production/i.test(process.env.NODE_ENV))){
+    this.init(compilerOptionsOrProjectDirname)
     this.development = development
     this.server = ts.createLanguageService({
       getCompilationSettings:()=>this.compilerOptions,
@@ -79,7 +101,6 @@ export class Compile {
       resolveModuleNames:(moduleNames,containingFile)=>this.resolveModuleNames(moduleNames,containingFile),
     })
   }
-  development = false
   watcher = new EventEmitter()
   watchers:FileWatcher[] = []
   unwatch = ()=>this.watchers.map((watcher)=>watcher.close())
