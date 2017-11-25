@@ -88,12 +88,9 @@ export class Compile {
       ...this.compilerOptions,
       ...config,
     }
+    return configfile
   }
   constructor(compilerOptionsOrProjectDirname?:ts.CompilerOptions|string,development=!(/production/i.test(process.env.NODE_ENV))){
-    this.init(compilerOptionsOrProjectDirname)
-    if(typeof compilerOptionsOrProjectDirname ==='string'){
-      sys.watchFile(compilerOptionsOrProjectDirname,()=>this.init(compilerOptionsOrProjectDirname))
-    }
     this.development = development
     this.server = ts.createLanguageService({
       getCompilationSettings:()=>this.compilerOptions,
@@ -104,6 +101,12 @@ export class Compile {
       getDefaultLibFileName:(options)=>ts.getDefaultLibFileName(options),
       resolveModuleNames:(moduleNames,containingFile)=>this.resolveModuleNames(moduleNames,containingFile),
     })
+    let configfile = this.init(compilerOptionsOrProjectDirname)    
+    if(this.development && typeof configfile ==='string'){
+      this.watchers.push(
+        sys.watchFile(configfile,()=>this.init(compilerOptionsOrProjectDirname))
+      )
+    }
   }
   watcher = new EventEmitter()
   watchers:FileWatcher[] = []
