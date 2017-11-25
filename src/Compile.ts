@@ -91,6 +91,9 @@ export class Compile {
   }
   constructor(compilerOptionsOrProjectDirname?:ts.CompilerOptions|string,development=!(/production/i.test(process.env.NODE_ENV))){
     this.init(compilerOptionsOrProjectDirname)
+    if(typeof compilerOptionsOrProjectDirname ==='string'){
+      sys.watchFile(compilerOptionsOrProjectDirname,()=>this.init(compilerOptionsOrProjectDirname))
+    }
     this.development = development
     this.server = ts.createLanguageService({
       getCompilationSettings:()=>this.compilerOptions,
