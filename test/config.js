@@ -20,20 +20,22 @@ describe('config',()=>{
     let configFilePath = sys.resolvePath(__dirname+'/configWatch/tsconfig.json')
     let config1 = sys.readFile(__dirname+'/configWatch/tsconfig.1.json')
     let config2 = sys.readFile(__dirname+'/configWatch/tsconfig.2.json')
-
-    let lastConfig
-    for(let order of Array.from(' '.repeat(4)).map((x,i)=>i)){
-      sys.writeFile(configFilePath, order%2 ? config1 : config2 )
-      await sleep(200)
-      if(lastConfig){
-        assert.equal(
-          JSON.stringify(lastConfig) !== JSON.stringify(compiler.compilerOptions),
-          `the compiler compilerOptions is unchange when file change`
-        )
-      }
-      lastConfig = compiler.compilerOptions
+    /**@param {string} config */
+    let rewriteConfigFile = async (config)=>{
+      sys.writeFile(configFilePath, config )
+      await sleep(500) //事件更新虽说很快, 但也是有延时的
+      return JSON.stringify(compiler.compilerOptions)
     }
     
+    let opt1 = await rewriteConfigFile(config1)
+    let opt2 = await rewriteConfigFile(config2)
+
+    assert(
+      opt1 !== opt2,
+      `the compiler compilerOptions is unchange when tsconfig file change`
+    )
+    
     compiler.unwatch()
+
   })
 })
