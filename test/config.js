@@ -23,17 +23,17 @@ describe('config',()=>{
 
     let lastConfig
     for(let order of Array.from(' '.repeat(4)).map((x,i)=>i)){
-      sys.writeFile(configFilePath,order)
+      sys.writeFile(configFilePath, order%2 ? config1 : config2 )
       await sleep(200)
       if(lastConfig){
         assert.equal(
-          lastConfig,
-          compiler.compilerOptions,
+          JSON.stringify(lastConfig) !== JSON.stringify(compiler.compilerOptions),
           `the compiler compilerOptions is unchange when file change`
         )
       }
       lastConfig = compiler.compilerOptions
     }
     
+    compiler.unwatch()
   })
 })
