@@ -26,13 +26,21 @@ describe('config',()=>{
       await sleep(500) //事件更新虽说很快, 但也是有延时的
       return JSON.stringify(compiler.compilerOptions)
     }
-    
+    let sourceFile = sys.resolvePath(__dirname+'/configWatch/a.ts')
+    compiler.getScriptVersion(sourceFile)
     let opt1 = await rewriteConfigFile(config1)
+    let compiled_code1 = compiler.getCompiledCode(sourceFile)
     let opt2 = await rewriteConfigFile(config2)
+    let compiled_code2 = compiler.getCompiledCode(sourceFile)
 
     assert(
       opt1 !== opt2,
       `the compiler compilerOptions is unchange when tsconfig file change`
+    )
+    
+    assert(
+      compiled_code1 !== compiled_code2,
+      `compilerOptions is changed , but the exist compiled files return old compiled code`
     )
     
     compiler.unwatch()
